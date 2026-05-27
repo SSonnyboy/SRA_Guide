@@ -27,35 +27,28 @@ def auc_rank(y_true, y_pred):
     return auc
 
 # 近似版
-def auc_rectangle(y_true, y_scores):
-    # 按预测得分降序排序
-    sorted_indices = np.argsort(y_scores)[::-1]
-    y_true_sorted = y_true[sorted_indices]
-    y_scores_sorted = y_scores[sorted_indices]
-
-    # 统计正负样本数
-    P = np.sum(y_true == 1)
-    N = len(y_true) - P
-    if P == 0 or N == 0:
-        return 0.5  # 全正或全负时AUC无意义
-
-    # 初始化变量
-    FP, TP = 0, 0
-    prev_fpr, prev_tpr = 0, 0
-    auc = 0.0
-
-    # 遍历所有可能的阈值
-    for i in range(len(y_scores_sorted)):
-        if y_true_sorted[i] == 1:
-            TP += 1
-        else:
-            FP += 1
-        curr_fpr = FP / N
-        curr_tpr = TP / P
-        # 计算当前矩形的面积（宽 × 高）
-        auc += (curr_fpr - prev_fpr) * curr_tpr
-        prev_fpr, prev_tpr = curr_fpr, curr_tpr
-
-    # 处理最后一个矩形（阈值≤最小得分）
-    auc += (1 - prev_fpr) * 1  # 最后一个点(FPR=1, TPR=1)
+import numpy as np
+def auc(y_true, y_score):
+    # 1. 排序
+    idx = np.argsort(y_score)[::-1]
+    y = y_true[idx]
+    
+    # 2. 算PN
+    P = np.sum(y==1)
+    N = len(y)-P
+    
+    FP=TP=auc=0
+    pre_fpr=0
+    
+    # 3. 遍历
+    for i in y:
+        if i==1: TP+=1
+        else: FP+=1
+        
+        cur_fpr = FP/N
+        cur_tpr = TP/P
+        auc += (cur_fpr-pre_fpr)*cur_tpr
+        pre_fpr = cur_fpr
+    
+    auc += (1-pre_fpr)*1
     return auc

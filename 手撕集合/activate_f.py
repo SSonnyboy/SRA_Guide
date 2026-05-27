@@ -30,12 +30,6 @@ def sigmoid(x):
     return result
 
 
-def sigmoid_derivative(x):
-    """sigmoid的导数：σ(x) × (1 - σ(x))"""
-    s = sigmoid(x)
-    return s * (1 - s)
-
-
 # ============================================================
 # 2. Softmax
 # ============================================================
@@ -56,52 +50,4 @@ def softmax(x):
     return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 
-def softmax_jacobian(x):
-    """
-    softmax的雅可比矩阵（导数矩阵）
-    J[i][j] = ∂softmax_i/∂x_j = softmax_i × (δ_ij - softmax_j)
 
-    用途：反向传播时，loss对x的梯度 = J^T × ∂loss/∂softmax
-    """
-    s = softmax(x)
-    # 构造雅可比矩阵
-    n = len(s)
-    jacobian = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            if i == j:
-                jacobian[i][j] = s[i] * (1 - s[i])       # 对角线
-            else:
-                jacobian[i][j] = -s[i] * s[j]             # 非对角线
-    return jacobian
-
-
-# ============================================================
-# 测试
-# ============================================================
-if __name__ == "__main__":
-    # ---- Sigmoid 测试 ----
-    x = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
-    print("=== Sigmoid ===")
-    print(f"输入: {x}")
-    print(f"输出: {sigmoid(x).round(4)}")
-    print(f"导数: {sigmoid_derivative(x).round(4)}")
-    print(f"验证: sigmoid(0)应该=0.5 → {sigmoid(np.array([0.0]))}")
-
-    # 对比PyTorch
-    x_torch = torch.tensor(x, dtype=torch.float32)
-    print(f"PyTorch: {torch.sigmoid(x_torch).numpy().round(4)}")
-
-    # ---- Softmax 测试 ----
-    print("\n=== Softmax ===")
-    x = np.array([2.0, 1.0, 0.5])
-    print(f"输入: {x}")
-    print(f"输出: {softmax(x).round(4)}")
-    print(f"验证: 输出之和应该=1 → {softmax(x).sum():.4f}")
-
-    # 对比PyTorch
-    x_torch = torch.tensor(x, dtype=torch.float32)
-    print(f"PyTorch: {torch.softmax(x_torch, dim=0).numpy().round(4)}")
-
-    # 雅可比矩阵
-    print(f"\n雅可比矩阵:\n{softmax_jacobian(x).round(4)}")
